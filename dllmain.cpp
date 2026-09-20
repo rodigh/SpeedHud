@@ -1,4 +1,4 @@
-#include <Windows.h>
+﻿#include <Windows.h>
 #include <thread>
 #include <d3d11.h>
 #include <dxgi.h>
@@ -32,7 +32,7 @@ ID3D11RenderTargetView* g_RTV = nullptr;
 std::atomic<bool> g_ImGuiInitialized(false);
 
 // HUD
-constexpr uintptr_t g_SpeedAddress = 0x2A856CC;
+constexpr uintptr_t g_SpeedAddress = 0x2a8b7ec;
 
 // HUD state
 bool g_ShowSpeed = true;
@@ -62,14 +62,14 @@ std::map<int, bool> g_PrevKeyStates;
 // TIME CONTROL GLOBALS
 // ----------------------------
 // Time Of Day patterns and patches
-constexpr const char* TODTickDisablePattern = "F3 41 0F 11 95 38 01 00 00";
+constexpr const char* TODTickDisablePattern = "F3 41 0F 11 95 50 01 00 00";
 constexpr BYTE TODTickDisablePatch[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
 
 constexpr const char* TODTickRevertPattern = "90 90 90 90 90 90 90 90 90 F3 0F 10 05";
-constexpr BYTE TODTickRevertPatch[] = { 0xF3, 0x41, 0x0F, 0x11, 0x95, 0x38, 0x01, 0x00, 0x00 };
+constexpr BYTE TODTickRevertPatch[] = { 0xF3, 0x41, 0x0F, 0x11, 0x95, 0x50, 0x01, 0x00, 0x00 };
 
-constexpr uintptr_t TODOffset = 0x138;
-constexpr uintptr_t TODPointer = 0x02A87678;
+constexpr uintptr_t TODOffset = 0x150;
+constexpr uintptr_t TODPointer = 0x2A8EB48;
 
 // Time control state
 bool g_IsTimePassing = true;
@@ -124,7 +124,7 @@ void CreateDefaultConfig()
             "Scale=3.0\n"
             "ShowSpeed=1\n"
             "ShowDistance=1\n"
-            "ShowDecimalSpeed=0\n"  
+            "ShowDecimalSpeed=0\n"
             "FontFile=\n";
     }
 }
