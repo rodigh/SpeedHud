@@ -1,4 +1,6 @@
-For details, please refer to the source of the fork.
+For details, please refer to the original fork.
+
+The main focus is compatibility with the new version; there are no additional features.
 
 2026/09/20:v43 — Debug build
 
