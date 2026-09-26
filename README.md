@@ -6,4 +6,4 @@ The main focus is compatibility with the new version; there are no additional fe
 
 2026/09/21:v43 Release build — replaced with the release build due to reports that it was not working
 
-2026/09/21:v43 Release build 2 — Due to my mistake, I had uploaded a personal build file, so I’m replacing the file again
+2026/09/21:v43 Release build 2 — Due to my mistake, I uploaded a personal build file, which prevents time operations from being performed with F1 and F2 under normal use. I am therefore replacing the file again
