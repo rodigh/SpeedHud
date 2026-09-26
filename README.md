@@ -1,4 +1,4 @@
-For details, please refer to the original fork.
+For details, please refer to the description in the source code of the original (forked-from) repository.
 
 The main focus is compatibility with the new version; there are no additional features.
 
@@ -6,4 +6,4 @@ The main focus is compatibility with the new version; there are no additional fe
 
 2026/09/21:v43 Release build — replaced with the release build due to reports that it was not working
 
-2026/09/21:v43 Release build 2 — replaced again because the time manipulation processing was not working correctly
+2026/09/21:v43 Release build 2 — Due to my mistake, I had uploaded a personal build file, so I’m replacing the file again
