@@ -1,5 +1,7 @@
 For details, please refer to the description in the source code of the original (forked-from) repository.
 
+If the SpeedHud.asi file is quarantined by Windows Defender during download, please allow the file in Windows Defender.
+
 The main focus is compatibility with the new version; there are no additional features.
 
 2026/09/20:v43 — v43-compatible version that supports the speedometer and time manipulation(Debug build)
