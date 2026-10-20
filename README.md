@@ -1,19 +1,19 @@
 please download everything at once by selecting "Download ZIP" from the "Code" menu.
 
-2026/10/20:v44 Update(SpeedAdressOnly)
-
-
-Changed to a format that sets and loads addresses via an .ini file.
-
-Added "SpeedAddress.asi" for locating the speed address.
-
------
 
 Please refer to the following URL for details.
 
 https://mod.io/g/snowrunner/m/speedometer#description
 
 https://github.com/crzknya/SpeedHud
+
+-----
+
+2026/10/20:v44 Update(SpeedAdressOnly)
+
+Changed to a format that sets and loads addresses via an .ini file.
+
+Added "SpeedAddress.asi" for locating the speed address.
 
 -----
 
