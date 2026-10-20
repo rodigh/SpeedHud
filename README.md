@@ -27,7 +27,13 @@ If the `[ADDRESS]` section does not exist, please launch the game once and press
 
 SpeedAddress=0x2A8FA2C
 
+----
+
+To determine the `SpeedAddress`, please use `SpeedAddress.asi` located in the `SpeedAddress` folder.
+
 Ideally, the `SpeedAddress` should be retrieved automatically, but I lack the technical expertise to implement that.
+
+----
 
 If you wish to manipulate time, please install SnowFlyer2:
 
