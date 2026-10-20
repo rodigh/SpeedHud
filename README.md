@@ -1,4 +1,4 @@
-Alternatively, please download everything at once by selecting "Download ZIP" from the "Code" menu.
+please download everything at once by selecting "Download ZIP" from the "Code" menu.
 
 2026/10/20:v44 Update(SpeedAdressOnly)
 
