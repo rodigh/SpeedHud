@@ -27,30 +27,15 @@ If the `[ADDRESS]` section does not exist, please launch the game once and press
 
 SpeedAddress=0x2A8FA2C
 
-TODTickDisablePattern=F3 41 0F 11 95 50 01 00 00
-
-TODTickDisablePatch=90 90 90 90 90 90 90 90 90
-
-TODTickRevertPattern=90 90 90 90 90 90 90 90 90 F3 0F 10 05
-
-TODTickRevertPatch=F3 41 0F 11 95 50 01 00 00
-
-TODOffset=0x150
-
-TODPointer=0x2A8EB48
-
-To determine the `SpeedAddress`, please use `SpeedAddress.asi` located in the `SpeedAddress` folder.
-
-
-For the settings under `TODTickDisablePattern`, please configure them based on the update details of SnowFlyer2.
-
-You do not need to change these settings if you do not require time manipulation features.
-
-https://github.com/NakedDevA/SnowFlyer2/blob/main/SnowFlyer2/Program.cs
-
-https://github.com/NakedDevA/SnowFlyer2/commits/main/SnowFlyer2/Program.cs
-
 Ideally, the `SpeedAddress` should be retrieved automatically, but I lack the technical expertise to implement that.
+
+If you wish to manipulate time, please install SnowFlyer2:
+
+https://github.com/NakedDevA/SnowFlyer2
+
+I have implemented support for time manipulation via memory addresses in the .ini file.
+
+However, as the processing method used by SnowFlyer2 has been altered, I have determined that it would be difficult to ensure compatibility with it.
 
 -----
 
