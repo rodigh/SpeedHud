@@ -14,6 +14,7 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include <iomanip>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -32,7 +33,7 @@ ID3D11RenderTargetView* g_RTV = nullptr;
 std::atomic<bool> g_ImGuiInitialized(false);
 
 // HUD
-constexpr uintptr_t g_SpeedAddress = 0x2a8b7ec;
+uintptr_t g_SpeedAddress = 0x2A8FA2C;
 
 // HUD state
 bool g_ShowSpeed = true;
@@ -62,14 +63,14 @@ std::map<int, bool> g_PrevKeyStates;
 // TIME CONTROL GLOBALS
 // ----------------------------
 // Time Of Day patterns and patches
-constexpr const char* TODTickDisablePattern = "F3 41 0F 11 95 50 01 00 00";
-constexpr BYTE TODTickDisablePatch[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+std::string g_TODTickDisablePattern = "F3 41 0F 11 95 50 01 00 00";
+std::vector<unsigned char> g_TODTickDisablePatch = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
 
-constexpr const char* TODTickRevertPattern = "90 90 90 90 90 90 90 90 90 F3 0F 10 05";
-constexpr BYTE TODTickRevertPatch[] = { 0xF3, 0x41, 0x0F, 0x11, 0x95, 0x50, 0x01, 0x00, 0x00 };
+std::string g_TODTickRevertPattern = "90 90 90 90 90 90 90 90 90 F3 0F 10 05";
+std::vector<unsigned char> g_TODTickRevertPatch = { 0xF3, 0x41, 0x0F, 0x11, 0x95, 0x50, 0x01, 0x00, 0x00 };
 
-constexpr uintptr_t TODOffset = 0x150;
-constexpr uintptr_t TODPointer = 0x2A8EB48;
+uintptr_t g_TODOffset = 0x150;
+uintptr_t g_TODPointer = 0x2A8EB48;
 
 // Time control state
 bool g_IsTimePassing = true;
@@ -113,6 +114,32 @@ inline void ClampHudPosition(ImVec2& pos, const ImVec2& textSize, const ImVec2& 
     pos.y = max(0.0f, min(pos.y, screenSize.y - textSize.y));
 }
 
+std::vector<BYTE> ParseHexBytes(const std::string& hexStr)
+{
+    std::vector<BYTE> result;
+    std::istringstream iss(hexStr);
+    std::string byteStr;
+    while (iss >> byteStr)
+    {
+        if (byteStr == "??" || byteStr == "?")
+            result.push_back(0);
+        else
+            result.push_back(static_cast<BYTE>(std::stoul(byteStr, nullptr, 16)));
+    }
+    return result;
+}
+
+std::string BytesToHexString(const std::vector<BYTE>& bytes)
+{
+    std::ostringstream oss;
+    for (size_t i = 0; i < bytes.size(); ++i)
+    {
+        if (i > 0) oss << " ";
+        oss << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(bytes[i]);
+    }
+    return oss.str();
+}
+
 void CreateDefaultConfig()
 {
     std::ofstream ini(g_IniPath);
@@ -125,7 +152,16 @@ void CreateDefaultConfig()
             "ShowSpeed=1\n"
             "ShowDistance=1\n"
             "ShowDecimalSpeed=0\n"
-            "FontFile=\n";
+            "FontFile=\n"
+            "\n"
+            "[ADDRESS]\n"
+            "SpeedAddress=0x2A8FA2C\n"
+            "TODTickDisablePattern=F3 41 0F 11 95 50 01 00 00\n"
+            "TODTickDisablePatch=90 90 90 90 90 90 90 90 90\n"
+            "TODTickRevertPattern=90 90 90 90 90 90 90 90 90 F3 0F 10 05\n"
+            "TODTickRevertPatch=F3 41 0F 11 95 50 01 00 00\n"
+            "TODOffset=0x150\n"
+            "TODPointer=0x2A8EB48\n";
     }
 }
 
@@ -135,7 +171,7 @@ void LoadConfig()
     if (!f.good())
         CreateDefaultConfig();
 
-    char buffer[256];
+    char buffer[512];
 
     GetPrivateProfileStringA("HUD", "PosX", "10", buffer, sizeof(buffer), g_IniPath.c_str());
     g_HudPos.x = static_cast<float>(atof(buffer));
@@ -157,6 +193,28 @@ void LoadConfig()
 
     GetPrivateProfileStringA("HUD", "FontFile", "", buffer, sizeof(buffer), g_IniPath.c_str());
     g_FontFile = buffer;
+
+    GetPrivateProfileStringA("ADDRESS", "SpeedAddress", "0x2A8FA2C", buffer, sizeof(buffer), g_IniPath.c_str());
+    g_SpeedAddress = static_cast<uintptr_t>(strtoull(buffer, nullptr, 0));
+
+    GetPrivateProfileStringA("ADDRESS", "TODTickDisablePattern", "F3 41 0F 11 95 50 01 00 00", buffer, sizeof(buffer), g_IniPath.c_str());
+    g_TODTickDisablePattern = buffer;
+
+    GetPrivateProfileStringA("ADDRESS", "TODTickDisablePatch", "90 90 90 90 90 90 90 90 90", buffer, sizeof(buffer), g_IniPath.c_str());
+    g_TODTickDisablePatch = ParseHexBytes(buffer);
+
+    GetPrivateProfileStringA("ADDRESS", "TODTickRevertPattern", "90 90 90 90 90 90 90 90 90 F3 0F 10 05", buffer, sizeof(buffer), g_IniPath.c_str());
+    g_TODTickRevertPattern = buffer;
+
+    GetPrivateProfileStringA("ADDRESS", "TODTickRevertPatch", "F3 41 0F 11 95 50 01 00 00", buffer, sizeof(buffer), g_IniPath.c_str());
+    g_TODTickRevertPatch = ParseHexBytes(buffer);
+
+    GetPrivateProfileStringA("ADDRESS", "TODOffset", "0x150", buffer, sizeof(buffer), g_IniPath.c_str());
+    g_TODOffset = static_cast<uintptr_t>(strtoull(buffer, nullptr, 0));
+
+    GetPrivateProfileStringA("ADDRESS", "TODPointer", "0x2A8EB48", buffer, sizeof(buffer), g_IniPath.c_str());
+    g_TODPointer = static_cast<uintptr_t>(strtoull(buffer, nullptr, 0));
+
 }
 
 void SaveConfig()
@@ -175,6 +233,21 @@ void SaveConfig()
     WritePrivateProfileStringA("HUD", "ShowSpeed", g_ShowSpeed ? "1" : "0", g_IniPath.c_str());
     WritePrivateProfileStringA("HUD", "ShowDistance", g_ShowDistance ? "1" : "0", g_IniPath.c_str());
     WritePrivateProfileStringA("HUD", "ShowDecimalSpeed", g_ShowDecimalSpeed ? "1" : "0", g_IniPath.c_str());
+
+    snprintf(buffer, sizeof(buffer), "0x%llx", (unsigned long long)g_SpeedAddress);
+    WritePrivateProfileStringA("ADDRESS", "SpeedAddress", buffer, g_IniPath.c_str());
+
+    WritePrivateProfileStringA("ADDRESS", "TODTickDisablePattern", g_TODTickDisablePattern.c_str(), g_IniPath.c_str());
+    WritePrivateProfileStringA("ADDRESS", "TODTickDisablePatch", BytesToHexString(g_TODTickDisablePatch).c_str(), g_IniPath.c_str());
+    WritePrivateProfileStringA("ADDRESS", "TODTickRevertPattern", g_TODTickRevertPattern.c_str(), g_IniPath.c_str());
+    WritePrivateProfileStringA("ADDRESS", "TODTickRevertPatch", BytesToHexString(g_TODTickRevertPatch).c_str(), g_IniPath.c_str());
+
+    snprintf(buffer, sizeof(buffer), "0x%llX", (unsigned long long)g_TODOffset);
+    WritePrivateProfileStringA("ADDRESS", "TODOffset", buffer, g_IniPath.c_str());
+
+    snprintf(buffer, sizeof(buffer), "0x%llX", (unsigned long long)g_TODPointer);
+    WritePrivateProfileStringA("ADDRESS", "TODPointer", buffer, g_IniPath.c_str());
+
 }
 
 inline bool HandleDebouncedInput(int vkey)
@@ -349,43 +422,43 @@ bool ApplyPatch(uintptr_t address, const BYTE* patch, size_t size)
 
 void StopTODTicker()
 {
-    uintptr_t address = PatternScan(TODTickDisablePattern);
+    uintptr_t address = PatternScan(g_TODTickDisablePattern.c_str());
     if (address)
     {
-        ApplyPatch(address, TODTickDisablePatch, sizeof(TODTickDisablePatch));
+        ApplyPatch(address, g_TODTickDisablePatch.data(), g_TODTickDisablePatch.size());
         g_IsTimePassing = false;
     }
 }
 
 void ResumeTODTicker()
 {
-    uintptr_t address = PatternScan(TODTickRevertPattern);
+    uintptr_t address = PatternScan(g_TODTickRevertPattern.c_str());
     if (address)
     {
-        ApplyPatch(address, TODTickRevertPatch, sizeof(TODTickRevertPatch));
+        ApplyPatch(address, g_TODTickRevertPatch.data(), g_TODTickRevertPatch.size());
         g_IsTimePassing = true;
     }
 }
 
 float GetCurrentTOD()
 {
-    uintptr_t baseAddress = (uintptr_t)g_GameModule + TODPointer;
+    uintptr_t baseAddress = (uintptr_t)g_GameModule + g_TODPointer;
     uintptr_t pointer = *(uintptr_t*)baseAddress;
     if (pointer == 0)
         return 0.0f;
 
-    uintptr_t valueAddress = pointer + TODOffset;
+    uintptr_t valueAddress = pointer + g_TODOffset;
     return *(float*)valueAddress;
 }
 
 void SetTOD(float time)
 {
-    uintptr_t baseAddress = (uintptr_t)g_GameModule + TODPointer;
+    uintptr_t baseAddress = (uintptr_t)g_GameModule + g_TODPointer;
     uintptr_t pointer = *(uintptr_t*)baseAddress;
     if (pointer == 0)
         return;
 
-    uintptr_t valueAddress = pointer + TODOffset;
+    uintptr_t valueAddress = pointer + g_TODOffset;
     *(float*)valueAddress = time;
 }
 
